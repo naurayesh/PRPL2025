@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.database.session import init_db
-from app.routes import event, announcement
+from app.routes import event, announcement, role
 from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(event.router, prefix='/api/events', tags=['events'])
 app.include_router(announcement.router, prefix='/api/announcements', tags=['announcements'])
+app.include_router(role.router)
 
 @app.get('/')
 async def root():
