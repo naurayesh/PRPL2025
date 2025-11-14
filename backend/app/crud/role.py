@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import update
 from app.models.role import Role
 
 async def create_role(session: AsyncSession, role_data: dict):
@@ -21,3 +22,20 @@ async def delete_role(session: AsyncSession, role_id: str):
     await session.delete(role)
     await session.commit()
     return role
+
+async def update_role(session: AsyncSession, role_id: str, data: dict):
+    query = (
+        update(Role)
+        .where(Role.id == role_id)
+        .values(**data)
+        .returning(Role)
+    )
+    result = await session.execute(query)
+    updated = result.fetchone()
+
+    await session.commit()
+    return updated
+
+async def get_role(session: AsyncSession, role_id: str):
+    result = await session.execute(select(Role).where(Role.id == role_id))
+    return result.scalar_one_or_none()
