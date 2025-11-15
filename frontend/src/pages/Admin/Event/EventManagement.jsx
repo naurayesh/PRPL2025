@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchEvents, deleteEvent } from "../api";
+import { fetchEvents, deleteEvent } from "../../../api";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
@@ -42,20 +42,10 @@ export default function EventManagement() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      {/* Back Button */}
-      <div className="mb-6">
-        <Link
-          to="/"
-          className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-        >
-          ← Back to Dashboard
-        </Link>
-      </div>
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#043873]">Kelola Acara</h1>
         <Link
-          to="/buat-acara"
+          to="/admin/acara/tambah" // ✅ Absolute path
           className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-800"
         >
           + Tambah Acara
@@ -94,7 +84,7 @@ export default function EventManagement() {
 
               <div className="flex gap-2">
                 <Link
-                  to={`/edit-acara/${event.id}`}
+                  to={`/admin/acara/edit/${event.id}`} // ✅ Added slash + correct prefix
                   className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
                 >
                   Ubah
