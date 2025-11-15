@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function SignupPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email OR phone
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -12,17 +11,23 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
 
+    const isEmail = identifier.includes("@");
+
+    const payload = isEmail
+      ? { email: identifier, password }
+      : { phone: identifier, password };
+
     try {
       const res = await fetch("http://localhost:8000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Signup failed");
+        setError(data.detail || "Signup failed");
         return;
       }
 
@@ -43,28 +48,16 @@ export default function SignupPage() {
         {error && <p className="text-red-600 text-center mb-3">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nama Lengkap
+              Email atau Nomor Telepon
             </label>
             <input
               type="text"
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email / Nomor Telepon
-            </label>
-            <input
-              type="email"
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-300"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
             />
           </div>
