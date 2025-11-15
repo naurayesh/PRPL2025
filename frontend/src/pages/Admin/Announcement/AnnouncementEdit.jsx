@@ -11,8 +11,8 @@ export default function AnnouncementEdit() {
 
   useEffect(() => {
     fetchAnnouncement(id).then((data) => {
-      setTitle(data.title);
-      setBody(data.body);
+      setTitle(data?.title || "");
+      setBody(data?.body || "");
     });
   }, [id]);
 

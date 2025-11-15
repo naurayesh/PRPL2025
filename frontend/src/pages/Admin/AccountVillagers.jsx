@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import AccountCard from "../../components/AccountCard";
+import AccountCard from "../../components/admin/AccountCard";
 import { fetchUsers } from "../../api";
 import { Trash2 } from "lucide-react";
 

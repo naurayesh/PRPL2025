@@ -6,7 +6,21 @@ export default function AnnouncementManagement() {
   const [announcements, setAnnouncements] = useState([]);
 
   useEffect(() => {
-    fetchAnnouncements().then(setAnnouncements);
+    fetchAnnouncements()
+      .then((res) => {
+        const array = res?.data;
+
+        if (Array.isArray(array)) {
+          setAnnouncements(array);
+        } else {
+          console.error("Announcements is not an array:", array);
+          setAnnouncements([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch announcements:", err);
+        setAnnouncements([]); // fail-safe
+      });
   }, []);
 
   async function handleDelete(id) {

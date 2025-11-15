@@ -43,7 +43,7 @@ export async function fetchEvent(id) {
 }
 
 export async function updateEvent(id, data) {
-  const res = await fetch(`${API_BASE}/events`, {
+  const res = await fetch(`${API_BASE}/events/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

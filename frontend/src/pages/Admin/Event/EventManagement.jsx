@@ -45,7 +45,7 @@ export default function EventManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#043873]">Kelola Acara</h1>
         <Link
-          to="/admin/acara/tambah" // ✅ Absolute path
+          to="/admin/acara/tambah" 
           className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-800"
         >
           + Tambah Acara
@@ -84,7 +84,7 @@ export default function EventManagement() {
 
               <div className="flex gap-2">
                 <Link
-                  to={`/admin/acara/edit/${event.id}`} // ✅ Added slash + correct prefix
+                  to={`/admin/acara/edit/${event.id}`} 
                   className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
                 >
                   Ubah

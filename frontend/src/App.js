@@ -28,12 +28,12 @@ import RoleAssign from "./pages/Admin/Role/RoleAssign";
 import RoleEdit from "./pages/Admin/Role/RoleEdit";
 
 // Admin – Announcements
-import AnnouncementCreate from "./pages/Admin/Announcement/AnnouncementCreate";
+import AnnouncementCreation from "./pages/Admin/Announcement/AnnouncementCreation";
 import AnnouncementEdit from "./pages/Admin/Announcement/AnnouncementEdit"; 
 import AnnouncementManagement from "./pages/Admin/Announcement/AnnouncementManagement";
 
 // Villager
-import AnnouncementList from "./pages/Villager/AnnouncementList";
+import VillagerAnnouncement from "./pages/Villager/VillagerAnnouncement";
 
 export default function App() {
   return (
@@ -68,19 +68,19 @@ export default function App() {
         <Route path="kehadiran/edit/:id" element={<AccountEdit />} />
 
         {/* Events */}
-        <Route path="kelola-acara" element={<EventManagement />} />
+        <Route path="acara" element={<EventManagement />} />
         <Route path="acara/tambah" element={<EventCreation />} />
         <Route path="acara/edit/:id" element={<EventEdit />} />
         
         {/* Announcements */}
         <Route path="pengumuman" element={<AnnouncementManagement />} />
-        <Route path="pengumuman/tambah" element={<AnnouncementCreate />} />
+        <Route path="pengumuman/tambah" element={<AnnouncementCreation />} />
         <Route path="pengumuman/edit/:id" element={<AnnouncementEdit />} /> 
       
       </Route>
 
       {/* Villager Routes */}
-      <Route path="/warga/pengumuman" element={<AnnouncementList />} />
+      <Route path="/pengumuman" element={<VillagerAnnouncement />} />
 
     </Routes>
   );

@@ -35,7 +35,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       icon: <ClipboardList size={18} />,
     },
     {
-      to: "/admin/kelola-acara",
+      to: "/admin/acara",
       label: "Kelola Acara",
       icon: <Calendar size={18} />,
     },

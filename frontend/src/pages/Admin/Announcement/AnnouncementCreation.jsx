@@ -8,23 +8,25 @@ export default function AnnouncementCreation() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("SUBMIT CLICKED");
-    setError(null);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError(null);
 
-    try {
-      const res = await createAnnouncement({ title, body });
+  try {
+    const res = await createAnnouncement({ title, body });
+    console.log("API response:", res);
 
-      if (res.success) {
-        navigate("/admin/pengumuman");
-      } else {
-        setError("Gagal membuat pengumuman");
-      }
-    } catch (err) {
-      setError("Terjadi kesalahan saat menyimpan pengumuman");
+    if (res?.success) {
+      navigate("/admin/pengumuman"); // redirect to list
+    } else {
+      setError("Gagal membuat pengumuman");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError("Terjadi kesalahan saat menyimpan pengumuman");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -65,7 +67,7 @@ export default function AnnouncementCreation() {
         <button
           type="submit"
           className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-800"
-          style={{ border: "3px solid red", zIndex: 9999, position: "relative" }}
+          style={{ zIndex: 9999, position: "relative" }}
         >
           Unggah Pengumuman
         </button>

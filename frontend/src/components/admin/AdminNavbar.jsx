@@ -10,7 +10,7 @@ export default function Navbar({ toggleSidebar }) {
     if (path === "/admin" || path === "/admin/dashboard") return "Dashboard";
     if (path.startsWith("/admin/acara/tambah")) return "Buat Acara";
     if (path.startsWith("/admin/edit-acara")) return "Edit Acara";
-    if (path.startsWith("/admin/acara")) return "Kelola Acara";
+    if (path.startsWith("/admin/acara")) return "Acara";
     if (path.startsWith("/admin/kehadiran")) return "Kehadiran";
     if (path.startsWith("/admin/peran")) return "Peran";
     if (path.startsWith("/admin/kelola-akun")) return "Kelola Akun";

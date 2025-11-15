@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchAnnouncements } from "../../../api";
+import { fetchAnnouncements } from "../../api";
 import AnnouncementCard from "../../components/announcements/AnnouncementCard";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
