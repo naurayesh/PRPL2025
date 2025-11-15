@@ -8,6 +8,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
+    full_name = Column(String(200), nullable=True)
     email = Column(String(254), unique=True, index=True, nullable=True)
     phone = Column(String(50), unique=True, index=True, nullable=True)
     hashed_password = Column(String, nullable=True)  # null for phone-only users (if you allow no password)

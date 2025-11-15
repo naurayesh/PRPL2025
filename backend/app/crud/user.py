@@ -19,15 +19,18 @@ async def get_by_id(session: AsyncSession, user_id: str) -> Optional[User]:
     result = await session.execute(select(User).where(User.id == user_id))
     return result.scalars().first()
 
-async def create_user_with_email(session: AsyncSession, email: str, password: str, is_admin: bool=False) -> User:
+async def create_user_with_email(session: AsyncSession, email: str, password: str, full_name=None, is_admin: bool=False) -> User:
     hashed = pwd_context.hash(password)
-    user = User(email=email, hashed_password=hashed, is_admin=is_admin)
-    session.add(user)
+    user = User(
+        email=email,
+        hashed_password=hashed,
+        full_name=full_name
+    )
     await session.flush()
     await session.refresh(user)
     return user
 
-async def create_user_with_phone(session: AsyncSession, phone: str, password: str) -> User:
+async def create_user_with_phone(session: AsyncSession, phone: str, password: str, full_name=None) -> User:
     hashed = pwd_context.hash(password)
     user = User(phone=phone, hashed_password=hashed)
     session.add(user)

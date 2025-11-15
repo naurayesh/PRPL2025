@@ -16,7 +16,7 @@ async def signup_email(payload: UserCreateEmail, session: AsyncSession = Depends
     existing = await user_crud.get_by_email(session, payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-    user = await user_crud.create_user_with_email(session, payload.email, payload.password)
+    user = await user_crud.create_user_with_email(session, payload.email, payload.password, payload.full_name)
     return UserOut.from_orm(user)
 
 @router.post("/signup/phone", response_model=UserOut)
@@ -24,7 +24,7 @@ async def signup_phone(payload: UserCreatePhone, session: AsyncSession = Depends
     existing = await user_crud.get_by_phone(session, payload.phone)
     if existing:
         raise HTTPException(status_code=400, detail="Phone already registered")
-    user = await user_crud.create_user_with_phone(session, payload.phone, payload.password)
+    user = await user_crud.create_user_with_phone(session, payload.phone, payload.password, payload.full_name)
     return UserOut.from_orm(user)
 
 @router.post("/login", response_model=Token)
