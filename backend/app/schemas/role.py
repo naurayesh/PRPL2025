@@ -1,20 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
 class RoleBase(BaseModel):
-    role_name: str = Field(..., example="Organizer")
-    permissions: Optional[str] = Field(None, example="Can manage event schedule")
+    role_name: str
+    description: Optional[str] = None
 
 class RoleCreate(RoleBase):
     event_id: UUID
-    participant_id: Optional[UUID] = None
 
 class RoleOut(RoleBase):
     id: UUID
     event_id: UUID
-    participant_id: Optional[UUID]
     created_at: datetime
     updated_at: datetime
 
