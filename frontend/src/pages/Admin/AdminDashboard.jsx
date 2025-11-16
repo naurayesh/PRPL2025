@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchEvents } from "../../api";
+import { fetchEvents, deleteEvent} from "../../api";
+import EventCard from "../../components/admin/AdminEventCard";
 
 export default function AdminDashboard() {
   const [events, setEvents] = useState([]);
@@ -23,6 +24,23 @@ export default function AdminDashboard() {
     load();
   }, []);
 
+  
+  // ----- SIMPLE DELETE HANDLER -----
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus acara ini?")) return;
+
+    try {
+      const res = await deleteEvent(id);
+      if (res.success) {
+        setEvents((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        alert("Gagal menghapus acara.");
+      }
+    } catch (err) {
+      alert("Gagal menghubungi server.");
+    }
+  };
+
   // Derived data for statistics
   const totalEvents = events.length;
   const upcomingEvents = events.filter(
@@ -30,9 +48,11 @@ export default function AdminDashboard() {
   );
   const upcomingCount = upcomingEvents.length;
 
-  // Temporary placeholders
+  // TODO: Temporary placeholders
   const totalParticipants = 0;
   const activeRoles = 0;
+
+  const topUpcoming = upcomingEvents.slice(0, 3);
 
   return (
       <div className="p-6">
@@ -57,49 +77,45 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        {/* ===== Upcoming Events ===== */}
-        <section className="mt-10">
-          <h3 className="text-xl font-bold text-[#043873] mb-4">
+      {/* ===== Upcoming Events ===== */}
+      <section className="mt-10">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-[#043873]">
             Acara Mendatang
           </h3>
 
-          {loading && <p>Memuat acara...</p>}
+          {/* View all events */}
+          <a
+            href="/admin/acara"
+            className="text-blue-600 hover:underline text-sm font-medium"
+          >
+            Lihat Semua Acara →
+          </a>
+        </div>
 
-          {!loading && (
-            <div className="flex flex-col gap-4 max-w-3xl">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="bg-white p-4 rounded-lg shadow border border-gray-100 flex justify-between items-center"
-                  >
-                    <div>
-                      <h4 className="text-lg font-semibold text-blue-800">
-                        {event.title}
-                      </h4>
-                      <p className="text-sm text-gray-500">
-                        📅{" "}
-                        {event.event_date
-                          ? new Date(event.event_date).toLocaleString()
-                          : "Tanggal tidak tersedia"}{" "}
-                        | 📍 {event.location || "Lokasi tidak tersedia"}
-                      </p>
-                      <p className="text-sm text-gray-700 mt-1">
-                        Peserta: (belum didukung)
-                      </p>
-                    </div>
+        {loading && <p>Memuat acara...</p>}
 
-                    <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-700">
-                      Terbuka
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Tidak ada acara mendatang.</p>
-              )}
-            </div>
-          )}
-        </section>
-      </div>
+        {!loading && (
+          <div className="flex flex-col gap-4 max-w-3xl">
+            {topUpcoming.length > 0 ? (
+              topUpcoming.map((event) => (
+                <EventCard key={event.id} event={{
+                    id: event.id,
+                    nama: event.title,
+                    tanggal: new Date(event.event_date).toLocaleDateString("id-ID"),
+                    jam: new Date(event.event_date).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+                    lokasi: event.location || "Lokasi tidak tersedia",
+                    peserta: 0,   // No backend support yet
+                    kuota: 0,     // Optional until backend ready
+                    status: "Terbuka"
+                }} />
+              ))
+            ) : (
+              <p className="text-gray-500">Tidak ada acara mendatang.</p>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }

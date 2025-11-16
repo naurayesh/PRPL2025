@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
-class AnnouncementCreation(BaseModel):
+class AnnouncementCreate(BaseModel):
     title: str
     body: str
 

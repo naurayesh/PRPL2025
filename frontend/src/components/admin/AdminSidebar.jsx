@@ -55,16 +55,16 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       } transition duration-300 ease-in-out z-40`}
     >
-      {/* Close button (mobile only) */}
+      {/* Close button*/}
       <button
         onClick={toggleSidebar}
-        className="md:hidden p-2 text-gray-200 hover:text-white absolute top-4 right-4"
+        className="p-2 text-gray-200 hover:text-white absolute top-4 right-4"
       >
         <X size={20} />
       </button>
 
       <div className="mt-10">
-        <h2 className="text-xl font-bold px-4 mb-4">Admin Panel</h2>
+        <h2 className="text-xl font-bold px-4 mb-4">Menu</h2>
 
         <nav className="space-y-1">
           {links.map((link) => {

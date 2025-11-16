@@ -87,14 +87,6 @@ export default function EventEdit() {
 
   return (
       <div className="min-h-screen bg-gray-100 p-8">
-        <div className="mb-6">
-          <Link
-            to="admin/acara"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-          >
-            ← Back to Event Management
-          </Link>
-        </div>
 
         <h1 className="text-2xl font-bold text-[#043873] mb-6">Ubah Acara</h1>
 
