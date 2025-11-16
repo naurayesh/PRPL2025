@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-from app.models import Base
+from app.database.base import Base
 from sqlalchemy import text
 
 class Announcement(Base):
