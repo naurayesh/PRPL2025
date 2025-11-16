@@ -3,25 +3,51 @@ from sqlalchemy import select, or_, func
 from app.models.event import Event
 from typing import List, Optional
 
-async def create_event(session: AsyncSession, title, description, location, event_date):
-    ev = Event(title=title, description=description, location=location, event_date=event_date)
-    session.add(ev)
+async def create_event(session, title, description, location, event_date, requires_registration=False, slots_available=None, recurrence_pattern=None):
+    new_event = Event(
+        title=title,
+        description=description,
+        location=location,
+        event_date=event_date,
+        requires_registration=requires_registration,
+        slots_available=slots_available,
+    )
+    session.add(new_event)
     await session.commit()
-    await session.refresh(ev)
-    return ev
+    await session.refresh(new_event)
+    if recurrence_pattern:
+        from app.models.recurrence import Recurrence
 
-async def update_event(session: AsyncSession, ev: Event, **kwargs):
-    for k,v in kwargs.items():
+        rec = Recurrence(
+            event_id=new_event.id,
+            pattern=recurrence_pattern.lower(),
+            active=True,
+            next_run=event_date,  # start next_run at initial date
+        )
+        session.add(rec)
+        await session.commit()
+
+    return new_event
+
+async def update_event(session: AsyncSession, event_id: int, update_data: dict):
+    stmt = select(Event).where(Event.id == event_id)
+    result = await session.execute(stmt)
+    ev = result.scalar_one_or_none()
+    if ev is None:
+        return None
+    for k, v in update_data.items():
         if v is not None:
-            if k=='event_date':
-                setattr(ev,'event_date',v)
-            else:
-                setattr(ev,k,v)
+            setattr(ev, k, v)
     await session.commit()
     await session.refresh(ev)
     return ev
 
-async def delete_event(session: AsyncSession, ev: Event):
+async def delete_event(session: AsyncSession, event_id: int):
+    stmt = select(Event).where(Event.id == event_id)
+    result = await session.execute(stmt)
+    ev = result.scalar_one_or_none()
+    if ev is None:
+        return None
     await session.delete(ev)
     await session.commit()
     return ev
