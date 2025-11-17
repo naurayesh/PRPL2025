@@ -32,6 +32,17 @@ async def assign_role(
         raise HTTPException(status_code=404, detail="Participant not found")
     return updated
 
+@router.put("/{participant_id}/unassign-role", response_model=ParticipantOut)
+async def unassign_role(
+    participant_id: str,
+    current_user = Depends(require_admin_user),
+    session: AsyncSession = Depends(get_session)
+):
+    updated = await crud.participant.unassign_role(session, participant_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    return updated
+
 
 @router.delete("/{participant_id}")
 async def delete_participant(
