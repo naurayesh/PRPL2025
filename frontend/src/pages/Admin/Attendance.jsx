@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AccountCard from "../../components/AccountCard";
+import AccountCard from "../../components/admin/AccountCard";
 
 export default function Attendance() {
   const [selectedEvent, setSelectedEvent] = useState("");

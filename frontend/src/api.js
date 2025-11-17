@@ -133,6 +133,13 @@ export async function fetchEvent(id) {
   return res.data;
 }
 
+export async function fetchUpcomingEvents() {
+  const res = await api.get("/events", {
+    params: { upcoming }
+  });
+  return res.data;
+}
+
 export async function createEvent(data) {
   const res = await api.post(`/events`, data);
   return res.data;

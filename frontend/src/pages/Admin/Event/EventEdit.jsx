@@ -58,7 +58,7 @@ export default function EventEdit() {
     try {
       const res = await updateEvent(id, payload);
       if (res.success) {
-        navigate("/admin/kelola-acara");
+        navigate("/admin/acara");
       } else {
         alert("Gagal memperbarui acara.");
       }
@@ -73,7 +73,7 @@ export default function EventEdit() {
     try {
       const res = await deleteEvent(id);
       if (res.success) {
-        navigate("/admin/kelola-acara");
+        navigate("/acara");
       } else {
         alert("Gagal menghapus acara.");
       }
@@ -87,14 +87,6 @@ export default function EventEdit() {
 
   return (
       <div className="min-h-screen bg-gray-100 p-8">
-        <div className="mb-6">
-          <Link
-            to="/admin/kelola-acara"
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-          >
-            ← Kembali ke Kelola Acara
-          </Link>
-        </div>
 
         <h1 className="text-2xl font-bold text-[#043873] mb-6">Ubah Acara</h1>
 
@@ -144,7 +136,7 @@ export default function EventEdit() {
 
           <div className="flex justify-end gap-3">
             <Link
-              to="/admin/kelola-acara"
+              to="/admin/acara"
               className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
             >
               Batal

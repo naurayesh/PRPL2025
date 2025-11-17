@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchEvents, deleteEvent } from "../../../api";
+import EventCard from "../../../components/admin/AdminEventCard";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
@@ -45,7 +46,7 @@ export default function EventManagement() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#043873]">Kelola Acara</h1>
         <Link
-          to="/admin/acara/tambah" // ✅ Absolute path
+          to="/admin/acara/tambah" 
           className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-800"
         >
           + Tambah Acara
@@ -65,40 +66,29 @@ export default function EventManagement() {
             <p className="text-gray-600">Belum ada acara.</p>
           )}
 
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white shadow rounded-lg p-4 flex justify-between items-center"
-            >
-              <div>
-                <h2 className="text-lg font-semibold text-[#043873]">
-                  {event.title}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  {event.event_date
-                    ? new Date(event.event_date).toLocaleString()
-                    : "Tidak ada tanggal"}{" "}
-                  • {event.location}
-                </p>
-              </div>
+          {events.map((event) => {
+            const date = new Date(event.event_date);
 
-              <div className="flex gap-2">
-                <Link
-                  to={`/admin/acara/edit/${event.id}`} // ✅ Added slash + correct prefix
-                  className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-                >
-                  Ubah
-                </Link>
-
-                <button
-                  onClick={() => handleDelete(event.id)}
-                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  Hapus
-                </button>
-              </div>
-            </div>
-          ))}
+            return (
+              <EventCard
+                key={event.id}
+                event={{
+                  id: event.id,
+                  nama: event.title,
+                  tanggal: date.toLocaleDateString("id-ID"),
+                  jam: date.toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                  lokasi: event.location,
+                  peserta: 0, // no backend yet
+                  kuota: 0,   // optional
+                  status: "Terbuka",
+                }}
+                onDelete={handleDelete}
+              />
+            );
+          })}
         </div>
       )}
     </div>

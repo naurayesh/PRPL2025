@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import AccountCard from "../../components/AccountCard";
-import { fetchAllUsers } from "../../api";
+import AccountCard from "../../components/admin/AccountCard";
+import { fetchUsers } from "../../api";
 import { Trash2 } from "lucide-react";
 
 export default function VillagersAccount() {
@@ -20,12 +20,13 @@ export default function VillagersAccount() {
   }, []);
 
   const filteredUsers = users.filter((u) =>
-    (u.full_name || "").toLowerCase().includes(searchTerm.toLowerCase())
+    (u.email || u.phone || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const deleteUser = (id) => {
     if (window.confirm("Hapus akun ini?")) {
       setUsers((prev) => prev.filter((u) => u.id !== id));
+      // TODO: call real backend delete when you add it
     }
   };
 
@@ -35,7 +36,7 @@ export default function VillagersAccount() {
 
       <input
         type="text"
-        placeholder="Cari nama warga..."
+        placeholder="Cari nama/email/phone..."
         className="w-full md:w-1/2 p-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-300"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

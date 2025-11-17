@@ -1,123 +1,66 @@
-import { Link } from "react-router-dom";
+// src/pages/LandingPage.jsx
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Hero from "../components/Hero";
+import EventCard from "../components/EventCard";
 import { fetchEvents } from "../api";
-import { FiSearch, FiX } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
-  const [events, setEvents] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetchEvents();
-        if (res.success) {
-          const sorted = res.data.sort(
-            (a, b) => new Date(a.event_date) - new Date(b.event_date)
-          );
+  // Static hero images from assets
+  const heroImages = [
+    "/assets/hero1.jpg",
+    "/assets/hero2.jpg",
+    "/assets/hero3.jpg",
+  ];
 
-          setEvents(sorted);
-          setFiltered(sorted); // initial
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const res = await fetchEvents({ upcoming: true });
+        if (res.success) {
+          const validEvents = res.data
+            .filter((e) => !e.is_cancelled)
+            .sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
+          setUpcoming(validEvents.slice(0, 3)); // top 3
         }
       } catch (err) {
-        console.error("Failed to load events:", err);
+        console.error("Failed to fetch events:", err);
       }
       setLoading(false);
     }
-    load();
+
+    loadEvents();
   }, []);
-
-  // SEARCH FILTERING
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFiltered(events);
-      return;
-    }
-
-    const lower = searchQuery.toLowerCase();
-    const result = events.filter((e) =>
-      e.title.toLowerCase().includes(lower)
-    );
-
-    setFiltered(result);
-  }, [searchQuery, events]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
+      <Hero images={heroImages} />
 
-      {/* Search Row */}
-      <div className="px-8 md:px-20 mt-6 flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-[#043873]">Acara Mendatang</h2>
-
-        <button
-          onClick={() => setSearchVisible(!searchVisible)}
-          className="p-2 rounded-full hover:bg-gray-200 transition"
-        >
-          {searchVisible ? <FiX size={20} /> : <FiSearch size={20} />}
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      {searchVisible && (
-        <div className="px-8 md:px-20 mt-4">
-          <input
-            type="text"
-            placeholder="Cari acara…"
-            className="w-full p-3 border rounded-lg"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Upcoming Events */}
+      <section className="max-w-6xl mx-auto px-4 py-10">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-[#043873]">Acara Mendatang</h2>
+          <Link to="/daftar-acara" className="text-blue-600 hover:underline">
+            Semua
+          </Link>
         </div>
-      )}
 
-      {/* Events */}
-      <section className="px-8 md:px-20 py-12 bg-gray-50">
-        {loading && <p>Memuat acara...</p>}
-
-        {!loading && filtered.length === 0 && (
-          <p className="text-gray-500">
-            Tidak ada acara yang cocok dengan pencarian.
-          </p>
-        )}
-
-        <div className="flex flex-col gap-8">
-          {!loading &&
-            filtered.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition"
-              >
-                <h4 className="text-xl font-semibold text-blue-800">
-                  {event.title}
-                </h4>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  📅{" "}
-                  {event.event_date
-                    ? new Date(event.event_date).toLocaleString()
-                    : "Tanggal belum ditentukan"}{" "}
-                  | 📍 {event.location || "Lokasi tidak tersedia"}
-                </p>
-
-                <p className="text-gray-700 mt-3 line-clamp-3">
-                  {event.description}
-                </p>
-
-                <Link
-                  to={`/events/${event.id}`}
-                  className="inline-block mt-4 text-blue-700 font-semibold hover:underline"
-                >
-                  Lihat Detail →
-                </Link>
-              </div>
+        {loading ? (
+          <p className="mt-4">Memuat acara...</p>
+        ) : upcoming.length === 0 ? (
+          <p className="mt-4 text-gray-500">Tidak ada acara mendatang.</p>
+        ) : (
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {upcoming.map((ev) => (
+              <EventCard key={ev.id} event={ev} />
             ))}
-        </div>
+          </div>
+        )}
       </section>
 
       <Footer />
