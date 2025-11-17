@@ -60,7 +60,7 @@ export default function EventCreation() {
         });
       }
 
-      navigate("/admin/kelola-acara");
+      navigate("/admin/acara");
     } catch (err) {
       console.error(err);
       setError("Terjadi kesalahan saat menyimpan acara.");

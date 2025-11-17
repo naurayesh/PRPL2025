@@ -137,7 +137,7 @@ export default function EventEdit() {
         }
       }
 
-      navigate("/admin/kelola-acara");
+      navigate("/admin/acara");
 
     } catch (err) {
       console.error(err);
@@ -282,7 +282,7 @@ export default function EventEdit() {
 
         {/* Buttons */}
         <div className="flex justify-end gap-3 pt-4">
-          <Link to="/admin/kelola-acara" className="bg-gray-300 px-4 py-2 rounded">
+          <Link to="/admin/acara" className="bg-gray-300 px-4 py-2 rounded">
             Batal
           </Link>
 

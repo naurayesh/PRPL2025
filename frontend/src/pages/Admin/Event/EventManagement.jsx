@@ -1,96 +1,140 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchEvents, deleteEvent } from "../../../api";
-import EventCard from "../../../components/admin/AdminEventCard";
+import { fetchEvents, deleteEvent, api } from "../../../api";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
+  const [recurrences, setRecurrences] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const FREQ_LABELS = {
+    daily: "Harian",
+    weekly: "Mingguan",
+    monthly: "Bulanan",
+    yearly: "Tahunan",
+  };
 
   useEffect(() => {
     async function load() {
       try {
+        // Load all events
         const res = await fetchEvents();
-        if (res.success) {
-          setEvents(res.data);
-        } else {
-          setError("Gagal memuat daftar acara.");
+        if (!res.success) return;
+
+        setEvents(res.data);
+
+        // Load all recurrences
+        const r = await api.get("/recurrences");
+        if (r.data.success) {
+          const map = {};
+          r.data.data.forEach((rec) => {
+            if (!map[rec.event_id]) map[rec.event_id] = rec;
+          });
+          setRecurrences(map);
         }
+
       } catch (err) {
-        setError("Tidak dapat mengambil data dari server.");
+        console.error(err);
       }
       setLoading(false);
     }
+
     load();
   }, []);
 
-  // Handle delete event
   const handleDelete = async (id) => {
     if (!window.confirm("Hapus acara ini?")) return;
-
     try {
       const res = await deleteEvent(id);
       if (res.success) {
         setEvents(events.filter((e) => e.id !== id));
-      } else {
-        alert("Gagal menghapus acara.");
       }
-    } catch (err) {
+    } catch (e) {
       alert("Gagal menghubungi server.");
     }
   };
 
+  if (loading) return <div className="p-8">Memuat acara...</div>;
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-[#043873]">Kelola Acara</h1>
+
         <Link
-          to="/admin/acara/tambah" 
-          className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-800"
+          to="/admin/acara/tambah"
+          className="bg-[#043873] text-white px-4 py-2 rounded"
         >
           + Tambah Acara
         </Link>
       </div>
 
-      {/* Loading State */}
-      {loading && <p>Memuat daftar acara...</p>}
+      <div className="space-y-4">
+        {events.length === 0 && (
+          <p className="text-gray-600">Belum ada acara.</p>
+        )}
 
-      {/* Error State */}
-      {error && <p className="text-red-600">{error}</p>}
+        {events.map((event) => {
+          const isRecurring = recurrences[event.id];
+          const recurrenceLabel = isRecurring ? FREQ_LABELS[isRecurring.frequency] : null;
 
-      {/* Event list */}
-      {!loading && !error && (
-        <div className="space-y-4">
-          {events.length === 0 && (
-            <p className="text-gray-600">Belum ada acara.</p>
-          )}
+          return (
+            <div
+              key={event.id}
+              className="bg-white shadow rounded-lg p-4 flex justify-between items-center border"
+            >
+              <div>
+                <h2 className="text-lg font-semibold text-[#043873]">
+                  {event.title}
+                </h2>
 
-          {events.map((event) => {
-            const date = new Date(event.event_date);
+                <p className="text-sm text-gray-600">
+                  {new Date(event.event_date).toLocaleString()} • {event.location}
+                </p>
 
-            return (
-              <EventCard
-                key={event.id}
-                event={{
-                  id: event.id,
-                  nama: event.title,
-                  tanggal: date.toLocaleDateString("id-ID"),
-                  jam: date.toLocaleTimeString("id-ID", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                  lokasi: event.location,
-                  peserta: 0, // no backend yet
-                  kuota: 0,   // optional
-                  status: "Terbuka",
-                }}
-                onDelete={handleDelete}
-              />
-            );
-          })}
-        </div>
-      )}
+                {/* Extra details */}
+                <div className="mt-1 text-sm text-gray-700 flex gap-4">
+                  
+                  {/* Slots */}
+                  {event.requires_registration && (
+                    <span className="text-blue-700">
+                      Slots: {event.slots_available}
+                    </span>
+                  )}
+
+                  {/* Recurrence */}
+                  {isRecurring && (
+                    <span className="px-2 py-1 rounded bg-green-100 text-green-800 text-xs">
+                      {recurrenceLabel}
+                    </span>
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2">
+                <Link
+                  to={`/admin/acara/edit/${event.id}`}
+                  className="px-3 py-1 rounded bg-yellow-400 text-white hover:bg-yellow-500"
+                >
+                  Ubah
+                </Link>
+
+                <button
+                  onClick={() => handleDelete(event.id)}
+                  className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                >
+                  Hapus
+                </button>
+              </div>
+
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
