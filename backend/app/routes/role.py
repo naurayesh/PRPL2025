@@ -13,7 +13,7 @@ async def create_role(payload: RoleCreate, current_user = Depends(require_admin_
     role = await crud.role.create_role(session, payload.model_dump())
     return role
 
-@router.get("/{event_id}", response_model=list[RoleOut])
+@router.get("/event/{event_id}", response_model=list[RoleOut])
 async def list_roles(event_id: str, session: AsyncSession = Depends(get_session)):
     roles = await crud.role.list_roles(session, event_id)
     return roles
@@ -24,6 +24,14 @@ async def update_role(role_id: str, payload: RoleCreate, current_user = Depends(
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     return role
+
+@router.get("/detail/{role_id}", response_model=RoleOut)
+async def get_role(role_id: str, session: AsyncSession = Depends(get_session)):
+    role = await crud.role.get_role(session, role_id)
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    return role
+
 
 @router.delete("/{role_id}", response_model=dict)
 async def delete_role(role_id: str, current_user = Depends(require_admin_user), session: AsyncSession = Depends(get_session)):

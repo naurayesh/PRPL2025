@@ -31,8 +31,9 @@ import EventEdit from "./pages/Admin/Event/EventEdit";
 // Admin – Roles
 import RoleManagement from "./pages/Admin/Role/RoleManagement";
 import RoleCreation from "./pages/Admin/Role/RoleCreation";
-import RoleAssign from "./pages/Admin/Role/RoleAssign";
 import RoleEdit from "./pages/Admin/Role/RoleEdit";
+import RoleAssign from "./pages/Admin/Role/RoleAssign";
+import RoleEditAssign from "./pages/Admin/Role/RoleEditAssign";
 
 // Admin – Announcements
 import AnnouncementCreation from "./pages/Admin/Announcement/AnnouncementCreation";
@@ -43,11 +44,15 @@ export default function App() {
   const [user, setUser] = useState(null);
   const location = useLocation();
 
-  // Load saved user
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    if (savedUser) setUser(JSON.parse(savedUser));
-  }, []);
+  const savedUser = sessionStorage.getItem("user");
+
+  if (savedUser) {
+    setUser(JSON.parse(savedUser)); // keep user during same session
+  } else {
+    setUser(null); // fresh load → no user
+  }
+}, []);
 
   // Check if page is inside admin area
   const isAdminRoute = location.pathname.startsWith("/admin");
@@ -82,8 +87,9 @@ export default function App() {
           {/* Roles */}
           <Route path="peran" element={<RoleManagement />} />
           <Route path="peran/tambah" element={<RoleCreation />} />
-          <Route path="peran/tugaskan" element={<RoleAssign />} />
           <Route path="peran/edit/:roleId" element={<RoleEdit />} />
+          <Route path="peran/tugaskan" element={<RoleAssign />} />
+          <Route path="peran/edit-penugasan/:roleId" element={<RoleEditAssign />} />
 
           {/* Attendance */}
           <Route path="kehadiran" element={<Attendance />} />

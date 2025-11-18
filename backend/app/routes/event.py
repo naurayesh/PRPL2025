@@ -112,3 +112,7 @@ async def remove_participant(event_id: str, user_id: str, current_user=Depends(r
     await session.commit()
 
     return {"success": True}
+
+@router.get("", response_model=list[EventOut])
+async def list_events(session: AsyncSession = Depends(get_session)):
+    return await crud.event.list_events(session)

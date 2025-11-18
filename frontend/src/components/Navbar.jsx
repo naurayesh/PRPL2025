@@ -6,10 +6,7 @@ export default function Navbar({ user, setUser}) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-
+    sessionStorage.clear();  // <-- NEW: clear sessionStorage
     setUser(null);
     navigate("/");
     window.location.reload();

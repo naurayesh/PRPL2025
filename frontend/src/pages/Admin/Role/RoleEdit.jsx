@@ -1,50 +1,66 @@
+// Edit Peran
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 const RoleEdit = () => {
   const navigate = useNavigate();
-  const { roleId } = useParams(); // from URL: /admin/peran/edit/:roleId
+  const { roleId } = useParams();
 
-  const API_BASE = process.env.REACT_APP_API_BASE;
+  const API_BASE = "http://localhost:8000/api";
 
   const [events, setEvents] = useState([]);
   const [eventId, setEventId] = useState("");
+
   const [roleName, setRoleName] = useState("");
-  const [requiredCount, setRequiredCount] = useState("");
+  const [slotsRequired, setSlotsRequired] = useState(1);
   const [description, setDescription] = useState("");
 
-  // Load events and existing role data
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        // Load events
-        const eventsRes = await axios.get(`${API_BASE}/events`);
-        setEvents(eventsRes.data.data);
+  // Helper to get headers with token + admin key
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("access_token");
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    if (process.env.REACT_APP_ADMIN_KEY)
+      headers["x-api-key"] = process.env.REACT_APP_ADMIN_KEY;
+    return headers;
+  };
 
-        // Load role details
-        const roleRes = await axios.get(`${API_BASE}/roles/detail/${roleId}`);
+  // Load events + role data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // 1) Load events
+        const eventsRes = await axios.get(`${API_BASE}/events`, {
+          headers: getAuthHeaders(),
+        });
+        setEvents(eventsRes.data?.data ?? []);
+
+        // 2) Load role
+        const roleRes = await axios.get(`${API_BASE}/roles/detail/${roleId}`, {
+          headers: getAuthHeaders(),
+        });
         const role = roleRes.data;
 
         setEventId(role.event_id);
         setRoleName(role.role_name);
         setDescription(role.description || "");
-        setRequiredCount(role.required_count || 1);
+        setSlotsRequired(role.slots_required ?? 1);
       } catch (err) {
-        console.error("Failed to load role or events", err);
-        alert("Gagal memuat data peran.");
+        console.error("Load error", err);
+        alert("Gagal memuat data peran. Periksa koneksi atau hak akses.");
       }
     };
 
-    loadInitialData();
+    loadData();
   }, [roleId, API_BASE]);
 
-  // Handle update
+  // Update role
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    if (!eventId || !roleName || !requiredCount) {
-      alert("Mohon isi semua field wajib (yang bertanda bintang ✦)");
+    if (!eventId || !roleName || !slotsRequired) {
+      alert("Mohon isi semua field wajib.");
       return;
     }
 
@@ -54,42 +70,45 @@ const RoleEdit = () => {
         {
           event_id: eventId,
           role_name: roleName,
-          required_count: Number(requiredCount),
-          description: description,
+          description,
+          slots_required: Number(slotsRequired),
         },
-        {
-          headers: {
-            "x-api-key": process.env.REACT_APP_ADMIN_KEY,
-          },
-        }
+        { headers: getAuthHeaders() }
       );
 
       alert("Peran berhasil diperbarui!");
       navigate("/admin/peran");
     } catch (err) {
-      console.error("Failed to update role", err);
-      alert("Gagal memperbarui peran.");
+      console.error("Update gagal", err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert("Anda tidak memiliki izin untuk memperbarui peran ini.");
+      } else {
+        alert("Gagal memperbarui peran. Cek console untuk detail.");
+      }
     }
   };
 
-  // Handle delete
+  // Delete role
   const handleDelete = async () => {
     const confirmDelete = window.confirm(
-      "Apakah Anda yakin ingin menghapus peran ini? Tindakan ini tidak dapat dibatalkan."
+      "Apakah Anda yakin ingin menghapus peran ini?"
     );
-
     if (!confirmDelete) return;
 
     try {
       await axios.delete(`${API_BASE}/roles/${roleId}`, {
-        headers: { "x-api-key": process.env.REACT_APP_ADMIN_KEY },
+        headers: getAuthHeaders(),
       });
 
       alert("Peran berhasil dihapus.");
       navigate("/admin/peran");
     } catch (err) {
-      console.error("Failed to delete role", err);
-      alert("Gagal menghapus peran.");
+      console.error("Delete gagal", err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        alert("Anda tidak memiliki izin untuk menghapus peran ini.");
+      } else {
+        alert("Gagal menghapus peran. Cek console untuk detail.");
+      }
     }
   };
 
@@ -98,27 +117,26 @@ const RoleEdit = () => {
       <h1 className="text-2xl font-bold">Edit Peran</h1>
 
       <form className="space-y-5" onSubmit={handleUpdate}>
-        {/* EVENT DROPDOWN */}
+        {/* Event */}
         <div className="flex flex-col gap-1">
           <label className="font-semibold">
             Pilih Acara <span className="text-red-500">*</span>
           </label>
-
           <select
             className="border p-3 rounded"
             value={eventId}
             onChange={(e) => setEventId(e.target.value)}
           >
             <option value="">-- Pilih Acara --</option>
-            {events.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.title}
+            {events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.title}
               </option>
             ))}
           </select>
         </div>
 
-        {/* ROLE NAME */}
+        {/* Role Name */}
         <div className="flex flex-col gap-1">
           <label className="font-semibold">
             Nama Peran <span className="text-red-500">*</span>
@@ -131,23 +149,23 @@ const RoleEdit = () => {
           />
         </div>
 
-        {/* REQUIRED COUNT */}
+        {/* Slots Required */}
         <div className="flex flex-col gap-1">
           <label className="font-semibold">
-            Jumlah Diperlukan <span className="text-red-500">*</span>
+            Slot Diperlukan <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
             min="1"
             className="border p-3 rounded"
-            value={requiredCount}
-            onChange={(e) => setRequiredCount(e.target.value)}
+            value={slotsRequired}
+            onChange={(e) => setSlotsRequired(Number(e.target.value))}
           />
         </div>
 
-        {/* DESCRIPTION */}
+        {/* Description */}
         <div className="flex flex-col gap-1">
-          <label className="font-semibold">Deskripsi Tugas</label>
+          <label className="font-semibold">Deskripsi</label>
           <textarea
             className="border p-3 rounded h-32 resize-none"
             value={description}
@@ -155,7 +173,7 @@ const RoleEdit = () => {
           ></textarea>
         </div>
 
-        {/* BUTTONS */}
+        {/* Buttons */}
         <div className="flex justify-between mt-6">
           <button
             type="button"
