@@ -253,3 +253,76 @@ export async function deleteAnnouncement(id) {
   const res = await api.delete(`/announcements/${id}`);
   return res.data;
 }
+
+/* ---------------------------------------------------
+   DASHBOARD STATS
+--------------------------------------------------- */
+export async function fetchDashboardStats() {
+  try {
+    // Fetch all data in parallel
+    const [eventsRes, rolesRes] = await Promise.all([
+      fetchEvents(),
+      fetchRoles()
+    ]);
+
+    // Get all events
+    const events = eventsRes.data || [];
+    
+    // Filter upcoming events
+    const upcomingEvents = events.filter(
+      (e) => new Date(e.event_date) >= new Date()
+    );
+
+    // Fetch participants for all upcoming events
+    const participantPromises = upcomingEvents.map(event => 
+      fetchEventParticipants(event.id).catch(() => [])
+    );
+    const participantsArrays = await Promise.all(participantPromises);
+
+    // Calculate TOTAL registrations
+    let totalRegistrations = 0;
+    participantsArrays.forEach(participants => {
+      totalRegistrations += (participants || []).length;
+    });
+
+    // Calculate active roles (participants with assigned roles in upcoming events)
+    let activeRolesCount = 0;
+    participantsArrays.forEach(participants => {
+      (participants || []).forEach(p => {
+        if (p.role_id) activeRolesCount++;
+      });
+    });
+
+    return {
+      success: true,
+      data: {
+        total_participants: totalRegistrations,
+        active_roles: activeRolesCount,
+        total_roles: rolesRes.length || 0
+      }
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    return {
+      success: false,
+      data: {
+        total_participants: 0,
+        active_roles: 0,
+        total_roles: 0
+      }
+    };
+  }
+}
+
+/**
+ * Fetch participant count for a specific event
+ */
+export async function fetchEventParticipantCount(eventId) {
+  try {
+    const res = await fetchEventParticipants(eventId);
+    return res.length || 0;
+  } catch (error) {
+    console.error(`Error fetching participants for event ${eventId}:`, error);
+    return 0;
+  }
+}
