@@ -2,11 +2,19 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar, MapPin, Users, ArrowLeft } from "lucide-react";
-import { fetchEvent, registerParticipant, fetchEventParticipants } from "../api";
+
+import {
+  fetchEvent,
+  registerParticipant,
+  fetchEventParticipants,
+} from "../api";
+
+import { Container, Section } from "../components/layout";
 
 export default function EventDetail({ user }) {
   const { eventId } = useParams();
   const navigate = useNavigate();
+
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
@@ -15,33 +23,26 @@ export default function EventDetail({ user }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    loadEventData();
+    loadEvent();
   }, [eventId, user]);
 
-  async function loadEventData() {
+  async function loadEvent() {
     try {
       setLoading(true);
+
       const res = await fetchEvent(eventId);
-      
-      if (res.success) {
-        setEvent(res.data);
-        
-        // Load participants
-        const participants = await fetchEventParticipants(eventId);
-        setParticipantCount(participants.length || 0);
-        
-        // Check if current user is already registered
-        if (user && participants.length > 0) {
-          const alreadyRegistered = participants.some(
-            (p) => p.user_id === user.id
-          );
-          setIsRegistered(alreadyRegistered);
-        }
-      } else {
-        setError("Acara tidak ditemukan.");
+      if (!res.success) return setError("Acara tidak ditemukan.");
+
+      setEvent(res.data);
+
+      const participants = await fetchEventParticipants(eventId);
+      setParticipantCount(participants.length || 0);
+
+      if (user) {
+        const registered = participants.some((p) => p.user_id === user.id);
+        setIsRegistered(registered);
       }
     } catch (err) {
-      console.error(err);
       setError("Gagal memuat acara.");
     } finally {
       setLoading(false);
@@ -49,68 +50,54 @@ export default function EventDetail({ user }) {
   }
 
   const handleRegister = async () => {
-    if (!user) {
-      alert("Silakan login terlebih dahulu untuk mendaftar");
-      navigate("/login");
-      return;
-    }
-
-    if (!event) return;
+    if (!user) return navigate("/login");
 
     try {
       setRegistering(true);
-      
-      // Use your friend's simpler API call
       await registerParticipant(event.id);
 
       setIsRegistered(true);
-      setParticipantCount((prev) => prev + 1);
-      alert("Berhasil mendaftar! Konfirmasi akan dikirim melalui WhatsApp Anda.");
-    } catch (err) {
-      console.error(err);
-      alert("Pendaftaran gagal, silakan coba lagi.");
+      setParticipantCount((c) => c + 1);
+      alert("Berhasil mendaftar!");
+    } catch {
+      alert("Pendaftaran gagal.");
     } finally {
       setRegistering(false);
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-600">Memuat acara...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <Text color="muted">Memuat acara...</Text>
       </div>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
-      <div className="min-h-screen bg-gray-100 p-8">
+      <Container>
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-blue-600 hover:underline mb-4"
+          className="flex items-center gap-2 text-blue-600 hover:underline mt-6"
         >
           <ArrowLeft size={20} />
           Kembali
         </button>
-        <p className="text-red-500">{error}</p>
-      </div>
+        <Text color="danger" className="mt-4">
+          {error}
+        </Text>
+      </Container>
     );
-  }
 
-  if (!event) return null;
-
-  // Use your friend's backend field (slots_available)
   const quota = event.slots_available ?? null;
   const slotsLeft = quota ? Math.max(quota - participantCount, 0) : null;
   const isFull = quota && participantCount >= quota;
 
-  // Get first poster image if available
-  const posterImage = event.media && event.media.length > 0 ? event.media[0].file_url : null;
+  const poster = event.media?.[0]?.file_url;
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl mx-auto p-6 lg:p-8">
-        {/* Back Button */}
+    <Section className="bg-gray-100">
+      <Container className="max-w-4xl">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-blue-600 hover:underline mb-6"
@@ -119,28 +106,22 @@ export default function EventDetail({ user }) {
           Kembali
         </button>
 
-        {/* Event Card */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* Poster Image */}
-          {posterImage && (
-            <img
-              src={posterImage}
-              alt="Poster Acara"
-              className="w-full h-64 object-cover"
-            />
+        <div className="bg-white rounded-xl shadow overflow-hidden">
+          {poster && (
+            <img src={poster} alt="Poster" className="w-full h-64 object-cover" />
           )}
 
-          {/* Content */}
-          <div className="p-6 lg:p-8">
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">{event.title}</h1>
+          <div className="p-8">
+            <Heading level={1} className="mb-6">
+              {event.title}
+            </Heading>
 
-            {/* Event Info */}
+            {/* Info Section */}
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3 text-gray-700">
-                <Calendar size={20} className="text-blue-600 flex-shrink-0" />
-                <span className="font-medium">
-                  {new Date(event.event_date).toLocaleDateString("id-ID", {
+                <Calendar size={20} className="text-blue-600" />
+                <Text>
+                  {new Date(event.event_date).toLocaleString("id-ID", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -148,82 +129,77 @@ export default function EventDetail({ user }) {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </span>
+                </Text>
               </div>
 
               <div className="flex items-center gap-3 text-gray-700">
-                <MapPin size={20} className="text-red-600 flex-shrink-0" />
-                <span className="font-medium">{event.location || "Lokasi tidak tersedia"}</span>
+                <MapPin size={20} className="text-red-600" />
+                <Text>{event.location || "Lokasi tidak tersedia"}</Text>
               </div>
             </div>
 
             {/* Description */}
             <div className="mb-6 pb-6 border-b">
-              <h3 className="font-semibold text-gray-800 mb-2 text-lg">Deskripsi Acara</h3>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {event.description || "Deskripsi tidak tersedia."}
-              </p>
+              <Heading level={3} className="mb-2">
+                Deskripsi Acara
+              </Heading>
+              <Text>{event.description || "Deskripsi tidak tersedia."}</Text>
             </div>
 
-            {/* Registration Info */}
+            {/* Registration */}
             {event.requires_registration && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <Users size={24} className="text-blue-600" />
-                  <h3 className="text-xl font-bold text-gray-800">
+                  <Users className="text-blue-600" />
+                  <Heading level={3}>
                     {participantCount} peserta terdaftar
-                  </h3>
+                  </Heading>
                 </div>
+
                 {quota ? (
-                  <p className="text-gray-600">
-                    Kuota: {quota} orang • Sisa slot: {slotsLeft}
-                  </p>
+                  <Text>
+                    Kuota {quota} • Sisa slot: {slotsLeft}
+                  </Text>
                 ) : (
-                  <p className="text-gray-600">Kuota tidak terbatas</p>
+                  <Text>Kuota tidak terbatas</Text>
                 )}
               </div>
             )}
 
-            {/* Register Button */}
-            {event.requires_registration && (
-              <>
-                {!user ? (
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-bold text-lg transition-colors shadow-md hover:shadow-lg"
-                  >
-                    Login untuk Mendaftar
-                  </button>
-                ) : isRegistered ? (
-                  <div className="bg-green-50 border-2 border-green-500 rounded-lg p-6 text-center">
-                    <div className="text-green-600 font-bold text-xl mb-2">✓ Sudah Terdaftar</div>
-                    <p className="text-gray-700">Anda sudah terdaftar untuk acara ini</p>
-                  </div>
-                ) : isFull ? (
-                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6 text-center">
-                    <div className="text-red-600 font-bold text-xl mb-2">Kuota Penuh</div>
-                    <p className="text-gray-700">Maaf, kuota peserta sudah terpenuhi</p>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleRegister}
-                    disabled={registering}
-                    className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-bold text-lg transition-colors shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-                  >
-                    {registering ? "Memproses..." : "Daftar Sekarang"}
-                  </button>
-                )}
-              </>
-            )}
-
-            {!event.requires_registration && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                <p className="text-gray-600 font-medium">Acara ini tidak memerlukan pendaftaran</p>
+            {/* Buttons */}
+            {event.requires_registration ? (
+              !user ? (
+                <button
+                  onClick={() => navigate("/login")}
+                  className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold"
+                >
+                  Login untuk Mendaftar
+                </button>
+              ) : isRegistered ? (
+                <div className="bg-green-50 border border-green-500 p-6 text-center rounded-lg">
+                  <Text color="success">✓ Anda sudah terdaftar</Text>
+                </div>
+              ) : isFull ? (
+                <div className="bg-red-50 border border-red-500 p-6 text-center rounded-lg">
+                  <Text color="danger">Kuota Penuh</Text>
+                </div>
+              ) : (
+                <button
+                  onClick={handleRegister}
+                  disabled={registering}
+                  className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold disabled:bg-gray-400"
+                >
+                  {registering ? "Memproses..." : "Daftar Sekarang"}
+                </button>
+              )
+            ) : (
+              <div className="bg-gray-50 border p-6 rounded-lg text-center">
+                <Text>Acara ini tidak memerlukan pendaftaran</Text>
               </div>
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </Container>
+    </Section>
   );
 }

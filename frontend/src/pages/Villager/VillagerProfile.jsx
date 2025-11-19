@@ -1,7 +1,8 @@
-// src/pages/Villager/VillagerProfile.jsx
 import React, { useState, useEffect } from "react";
 import { updateUser, fetchMe } from "../../api";
 import { User, Mail, Phone, Lock } from "lucide-react";
+import { Section, Container, Card, PageHeader } from "../../components/layout";
+import { Heading, Text } from "../../components/ui";
 
 export default function VillagerProfile({ user, setUser }) {
   const [form, setForm] = useState({
@@ -10,6 +11,7 @@ export default function VillagerProfile({ user, setUser }) {
     phone: "",
     password: "",
   });
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -36,41 +38,24 @@ export default function VillagerProfile({ user, setUser }) {
 
     try {
       setSaving(true);
-      setError(null);
-      setSuccess(false);
-
-      // Prepare update payload (only send fields that changed)
-      const updatePayload = {
+      const payload = {
         full_name: form.full_name,
         email: form.email || null,
         phone: form.phone || null,
       };
 
-      // Only include password if user entered one
-      if (form.password) {
-        updatePayload.password = form.password;
-      }
+      if (form.password) payload.password = form.password;
 
-      // Use /users/me endpoint for self-update
-      const res = await updateUser("me", updatePayload);
+      const res = await updateUser("me", payload);
+      if (!res.success) return setError("Gagal memperbarui profil");
 
-      if (res.success) {
-        // Refresh user data
-        const meResponse = await fetchMe();
-        const updatedUser = meResponse.data || meResponse;
-        
-        sessionStorage.setItem("user", JSON.stringify(updatedUser));
-        setUser(updatedUser);
-        
-        setSuccess(true);
-        setForm({ ...form, password: "" }); // Clear password field
-        
-        alert("Profil berhasil diperbarui!");
-      } else {
-        setError("Gagal memperbarui profil");
-      }
-    } catch (err) {
-      console.error("Failed to update profile:", err);
+      const me = await fetchMe();
+      setUser(me.data || me);
+      sessionStorage.setItem("user", JSON.stringify(me.data));
+
+      setSuccess(true);
+      setForm({ ...form, password: "" });
+    } catch {
       setError("Terjadi kesalahan saat menyimpan data");
     } finally {
       setSaving(false);
@@ -78,126 +63,112 @@ export default function VillagerProfile({ user, setUser }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#043873] mb-6">Profil Saya</h1>
+    <Section>
+      <Container>
 
-      {/* User Info Card */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex items-center gap-4 mb-4">
+        <PageHeader
+          title="Profil Saya"
+          subtitle="Kelola informasi akun Anda"
+        />
+
+        {/* Avatar Card */}
+        <Card className="p-6 mb-8 flex items-center gap-4">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
             <User size={32} className="text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">{user?.full_name}</h2>
-            <p className="text-sm text-gray-500">Warga Desa</p>
+            <Heading level={3}>{user?.full_name}</Heading>
+            <Text className="text-gray-500">Warga Desa</Text>
           </div>
-        </div>
-      </div>
+        </Card>
 
-      {/* Edit Form */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Edit Profil</h3>
+        {/* Edit Form Card */}
+        <Card className="p-6">
+          <Heading level={4} className="mb-4">
+            Edit Profil
+          </Heading>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+          {error && (
+            <Card className="bg-red-50 border-red-300 text-red-700 p-3 mb-4">
+              {error}
+            </Card>
+          )}
 
-        {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            Profil berhasil diperbarui!
-          </div>
-        )}
+          {success && (
+            <Card className="bg-green-50 border-green-300 text-green-700 p-3 mb-4">
+              Profil berhasil diperbarui!
+            </Card>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-2">
-                <User size={18} />
-                Nama Lengkap
-              </div>
-            </label>
-            <input
-              type="text"
-              name="full_name"
-              value={form.full_name}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="font-medium flex items-center gap-2 mb-1">
+                <User size={18} /> Nama Lengkap
+              </label>
+              <input
+                type="text"
+                name="full_name"
+                value={form.full_name}
+                onChange={handleChange}
+                required
+                className="w-full p-3 border rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="font-medium flex items-center gap-2 mb-1">
+                <Mail size={18} /> Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="font-medium flex items-center gap-2 mb-1">
+                <Phone size={18} /> Nomor Telepon
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="font-medium flex items-center gap-2 mb-1">
+                <Lock size={18} /> Kata Sandi Baru (opsional)
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Kosongkan jika tidak ingin mengubah"
+                className="w-full p-3 border rounded-lg"
+              />
+              <Text className="text-sm text-gray-500 mt-1">
+                Kosongkan jika tidak ingin mengubah kata sandi
+              </Text>
+            </div>
+
+            <button
+              type="submit"
               disabled={saving}
-            />
-          </div>
+              className="w-full bg-[#043873] text-white py-3 rounded-lg hover:bg-blue-900 transition"
+            >
+              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            </button>
+          </form>
+        </Card>
 
-          {/* Email */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-2">
-                <Mail size={18} />
-                Email
-              </div>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={saving}
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-2">
-                <Phone size={18} />
-                Nomor Telepon
-              </div>
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={saving}
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              <div className="flex items-center gap-2">
-                <Lock size={18} />
-                Kata Sandi Baru (opsional)
-              </div>
-            </label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="Kosongkan jika tidak ingin mengubah"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={saving}
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Kosongkan jika tidak ingin mengubah kata sandi
-            </p>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-[#043873] text-white py-3 rounded-lg hover:bg-blue-900 transition-colors font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            {saving ? "Menyimpan..." : "Simpan Perubahan"}
-          </button>
-        </form>
-      </div>
-    </div>
+      </Container>
+    </Section>
   );
 }

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { fetchAnnouncement, updateAnnouncement } from "../../../api";
 import { useParams, useNavigate } from "react-router-dom";
 
+import { Container, Section, PageHeader } from "../../../components/layout";
+
 export default function AnnouncementEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -21,62 +23,58 @@ export default function AnnouncementEdit() {
 
       setLoading(false);
     }
-
     load();
   }, [id]);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const payload = { title, body };
+    const res = await updateAnnouncement(id, { title, body });
 
-    const res = await updateAnnouncement(id, payload);
-
-    if (res.success) {
-      navigate("/admin/pengumuman");
-    } else {
-      alert("Gagal memperbarui pengumuman");
-    }
+    if (res.success) navigate("/admin/pengumuman");
+    else alert("Gagal memperbarui pengumuman");
   }
 
-  if (loading) return <p>Memuat data...</p>;
+  if (loading) return <p className="text-center py-8">Memuat data...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h2 className="text-2xl font-bold mb-4 text-[#043873]">Edit Pengumuman</h2>
+    <Section>
+      <Container>
+        <PageHeader title="Edit Pengumuman" />
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-6 space-y-4 max-w-xl"
-      >
-        <div>
-          <label className="block font-medium mb-1">Judul</label>
-          <input
-            className="w-full border rounded p-2"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium mb-1">Isi</label>
-          <textarea
-            className="w-full border rounded p-2"
-            rows={5}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            required
-          ></textarea>
-        </div>
-
-        <button
-          type="submit"
-          className="bg-[#043873] text-white px-4 py-2 rounded hover:bg-blue-900 transition"
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow-md rounded-lg p-6 space-y-4 max-w-xl mx-auto"
         >
-          Update
-        </button>
-      </form>
-    </div>
+          <div>
+            <label className="block font-medium mb-1">Judul</label>
+            <input
+              className="w-full border rounded p-2"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block font-medium mb-1">Isi</label>
+            <textarea
+              className="w-full border rounded p-2"
+              rows={5}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              required
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900"
+          >
+            Update
+          </button>
+        </form>
+      </Container>
+    </Section>
   );
 }

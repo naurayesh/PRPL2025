@@ -1,9 +1,12 @@
+// src/pages/EventList.jsx
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import EventCard from "../components/EventCard";
 import { fetchEvents } from "../api";
 import { FiSearch } from "react-icons/fi";
-import { Link } from "react-router-dom";
+
+import { Container, Section, PageHeader } from "../components/layout";
+import { Text } from "../components/ui";
 
 export default function EventList() {
   const [events, setEvents] = useState([]);
@@ -19,7 +22,6 @@ export default function EventList() {
           const sorted = res.data.sort(
             (a, b) => new Date(a.event_date) - new Date(b.event_date)
           );
-
           setEvents(sorted);
           setFiltered(sorted);
         }
@@ -36,62 +38,44 @@ export default function EventList() {
       setFiltered(events);
       return;
     }
-
     const q = query.toLowerCase();
     setFiltered(events.filter((e) => e.title.toLowerCase().includes(q)));
   }, [query, events]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Section>
+        <Container>
+          <PageHeader title="Daftar Acara" />
 
-      <div className="px-8 md:px-20 mt-8">
-        <h1 className="text-3xl font-bold text-[#043873]">Daftar Acara</h1>
+          {/* Search Bar */}
+          <div className="mt-6 flex items-center gap-2 border rounded-lg p-3 bg-white">
+            <FiSearch size={20} />
+            <input
+              type="text"
+              placeholder="Cari acara…"
+              className="w-full outline-none"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
 
-        <div className="mt-4 flex items-center gap-2 border rounded-lg p-3 bg-white">
-          <FiSearch size={20} />
-          <input
-            type="text"
-            placeholder="Cari acara…"
-            className="w-full outline-none"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-      </div>
+          {/* Events List */}
+          <div className="mt-8 flex flex-col gap-6 pb-16">
+            {loading && <Text color="muted">Memuat acara...</Text>}
 
-      <section className="px-8 md:px-20 mt-8 pb-16">
-        {loading && <p>Memuat acara...</p>}
+            {!loading && filtered.length === 0 && (
+              <Text color="muted">Tidak ada acara ditemukan.</Text>
+            )}
 
-        {!loading && filtered.length === 0 && (
-          <p className="text-gray-500 mt-4">Tidak ada acara ditemukan.</p>
-        )}
+            {!loading &&
+              filtered.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+          </div>
+        </Container>
+      </Section>
 
-        <div className="flex flex-col gap-8">
-          {!loading &&
-            filtered.map((event) => (
-              <div
-                key={event.id}
-                className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition"
-              >
-                <h4 className="text-xl font-semibold text-blue-800">{event.title}</h4>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  📅 {new Date(event.event_date).toLocaleString()} | 📍{" "}
-                  {event.location || "Lokasi tidak tersedia"}
-                </p>
-
-                <p className="text-gray-700 mt-3 line-clamp-3">{event.description}</p>
-
-                <Link
-                  to={`/detail-acara/${event.id}`}
-                  className="inline-block mt-4 text-blue-700 font-semibold hover:underline"
-                >
-                  Lihat Detail →
-                </Link>
-              </div>
-            ))}
-        </div>
-      </section>
       <Footer />
     </div>
   );
