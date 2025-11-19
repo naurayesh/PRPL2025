@@ -4,6 +4,9 @@ from app.database.session import get_session
 from app.schemas.participant import ParticipantCreate, ParticipantOut
 from app.core.deps import require_admin_user
 from app import crud
+from uuid import UUID
+from fastapi import Body
+from typing import Optional
 
 router = APIRouter()
 
@@ -54,3 +57,40 @@ async def delete_participant(
     if not ok:
         raise HTTPException(status_code=404, detail="Participant not found")
     return {"success": True}
+
+@router.post("/admin/register", response_model=ParticipantOut)
+async def admin_register_participant(
+    event_id: UUID = Body(...),
+    name: str = Body(...),
+    email: str = Body(...),
+    phone: str = Body(...),
+    role_id: Optional[UUID] = Body(None),
+    session: AsyncSession = Depends(get_session),
+    current_user = Depends(require_admin_user)
+):
+    """
+    Admin registers a user into an event using name/email/phone.
+    If the user does not exist, system automatically creates them.
+    """
+
+    # 1. Check if user exists
+    user = await crud.user.find_by_email_or_phone(session, email, phone)
+
+    # 2. If user not found → create new villager account
+    if not user:
+        user = await crud.user.create_user(session, {
+            "full_name": name,
+            "email": email,
+            "phone": phone,
+            "is_admin": False,
+        })
+
+    # 3. Register user into the event
+    data = {
+        "event_id": event_id,
+        "user_id": user.id,
+        "role_id": role_id,
+    }
+    participant = await crud.participation.create_participant(session, data)
+
+    return participant

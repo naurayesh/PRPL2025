@@ -1,31 +1,38 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.attendance import Attendance
-from sqlalchemy import select, func
-from datetime import datetime, date, timezone
+from datetime import datetime, date
 
-async def create_attendance(session: AsyncSession, event_id: str, participant_id: str, attended_at: datetime | None = None, notes: str | None = None):
-    # default attended_at -> now (UTC)
+async def create_attendance(
+    session: AsyncSession,
+    event_id: str,
+    participant_id: str,
+    attended_at=None,
+    notes=None
+):
+    # If attended_at not provided, use current time
     if attended_at is None:
-        attended_at = datetime.now(timezone.utc)
-
-    # create row
-    a = Attendance(
+        attended_at = datetime.now()
+    
+    # Extract the date from attended_at for attendance_day
+    if isinstance(attended_at, str):
+        attended_at = datetime.fromisoformat(attended_at.replace('Z', '+00:00'))
+    
+    attendance_day = attended_at.date()
+    
+    attendance = Attendance(
         event_id=event_id,
         participant_id=participant_id,
         attended_at=attended_at,
-        notes=notes,
+        attendance_day=attendance_day,  # Add this field
+        notes=notes
     )
-    session.add(a)
-    try:
-        await session.commit()
-    except Exception:
-        await session.rollback()
-        raise
-    await session.refresh(a)
-    return a
+    
+    session.add(attendance)
+    await session.commit()
+    await session.refresh(attendance)
+    return attendance
 
-async def get_attendance(session: AsyncSession, attendance_id: str):
-    return await session.get(Attendance, attendance_id)
 
 async def delete_attendance(session: AsyncSession, attendance_id: str):
     a = await session.get(Attendance, attendance_id)
@@ -35,23 +42,54 @@ async def delete_attendance(session: AsyncSession, attendance_id: str):
     await session.commit()
     return True
 
+
 async def list_attendances_for_event(session: AsyncSession, event_id: str):
-    q = await session.execute(select(Attendance).where(Attendance.event_id == event_id).order_by(Attendance.attended_at.desc()))
-    return q.scalars().all()
-
-# report: count by participant within date interval
-async def attendance_report(session: AsyncSession, event_id: str | None = None, start_date: date | None = None, end_date: date | None = None):
-    stmt = select(
-        Attendance.participant_id,
-        func.count(Attendance.id).label("attended_count")
+    result = await session.execute(
+        select(Attendance).where(Attendance.event_id == event_id)
     )
-    if event_id:
-        stmt = stmt.where(Attendance.event_id == event_id)
-    if start_date:
-        stmt = stmt.where(Attendance.attendance_day >= start_date)
-    if end_date:
-        stmt = stmt.where(Attendance.attendance_day <= end_date)
-    stmt = stmt.group_by(Attendance.participant_id).order_by(func.count(Attendance.id).desc())
+    return result.scalars().all()
 
-    res = await session.execute(stmt)
-    return [{"participant_id": r[0], "attended_count": r[1]} for r in res.all()]
+
+async def attendance_report(
+    session: AsyncSession,
+    event_id: str = None,
+    start_date: date = None,
+    end_date: date = None
+):
+    from sqlalchemy import func
+    from app.models.participant import Participant
+    from app.models.user import User
+    
+    # Base query
+    query = select(
+        Attendance.participant_id,
+        User.full_name.label('participant_name'),
+        func.count(Attendance.id).label('attended_count')
+    ).join(
+        Participant, Attendance.participant_id == Participant.id
+    ).join(
+        User, Participant.user_id == User.id
+    ).group_by(
+        Attendance.participant_id,
+        User.full_name
+    )
+    
+    # Apply filters
+    if event_id:
+        query = query.where(Attendance.event_id == event_id)
+    if start_date:
+        query = query.where(Attendance.attendance_day >= start_date)
+    if end_date:
+        query = query.where(Attendance.attendance_day <= end_date)
+    
+    result = await session.execute(query)
+    rows = result.all()
+    
+    return [
+        {
+            "participant_id": str(row.participant_id),
+            "participant_name": row.participant_name,
+            "attended_count": row.attended_count
+        }
+        for row in rows
+    ]

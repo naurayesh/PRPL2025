@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models.event import Event
 from app.models.participant import Participant
+from app.schemas.participant import ParticipantAdminCreate, ParticipantOut
 
 router = APIRouter()
 
@@ -203,6 +204,61 @@ async def register_for_event(
         "message": "Registered successfully",
         "slots_remaining": remaining
     }
+
+@router.post("/{event_id}/register-admin", response_model=ParticipantOut)
+async def register_participant_by_admin(
+    event_id: str,
+    payload: ParticipantAdminCreate,
+    current_user = Depends(require_admin_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Admin endpoint to register a new user and add them to an event"""
+    from app import crud as user_crud
+    
+    # Validate: name is required, and at least email or phone
+    if not payload.full_name or not payload.full_name.strip():
+        raise HTTPException(status_code=400, detail="Nama wajib diisi")
+    
+    if not payload.email and not payload.phone:
+        raise HTTPException(status_code=400, detail="Email atau No. Telepon wajib diisi")
+    
+    # Check if user exists
+    user = None
+    if payload.email:
+        user = await user_crud.user.get_by_email(session, payload.email)
+    if not user and payload.phone:
+        user = await user_crud.user.get_by_phone(session, payload.phone)
+    
+    # Create user if doesn't exist
+    if not user:
+        if payload.email:
+            # Create with email
+            user = await user_crud.user.create_user_with_email(
+                session, 
+                email=payload.email,
+                password="defaultpassword123",  # Or generate random password
+                full_name=payload.full_name
+            )
+        else:
+            # Create with phone
+            user = await user_crud.user.create_user_with_phone(
+                session,
+                phone=payload.phone,
+                password="defaultpassword123"
+            )
+            # Update full_name if needed
+            user.full_name = payload.full_name
+            await session.commit()
+            await session.refresh(user)
+    
+    # Register user for event
+    participant_data = {
+        "event_id": event_id,
+        "user_id": str(user.id),
+        "role_id": None
+    }
+    
+    return await crud.participation.create_participant(session, participant_data)
 
 # ---------------------------------------------------------
 # UNREGISTER FROM EVENT (USER)

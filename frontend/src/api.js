@@ -184,14 +184,27 @@ export async function deleteEventMedia(mediaId) {
 // Get participants for an event
 export async function fetchEventParticipants(eventId) {
   const res = await api.get(`/participants/${eventId}`);
-  return res.data;
+  return res.data;  
 }
 
-// Register participant
+// User registers themselves for an event
 export async function registerParticipant(eventId) {
   const token = localStorage.getItem("access_token");
 
   return api.post(`/events/${eventId}/register`, null, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+}
+
+// Admin registers any user for an event
+export async function registerParticipantByAdmin(eventId, name, email, phone) {
+  const token = localStorage.getItem("access_token");
+
+  return api.post(`/events/${eventId}/register-admin`, {
+    full_name: name,
+    email: email,
+    phone: phone
+  }, {
     headers: { Authorization: `Bearer ${token}` }
   });
 }
@@ -341,23 +354,53 @@ export async function fetchEventParticipantCount(eventId) {
 }
 
 // Attendance
-export async function markAttendance(eventId, data) {
-  const res = await api.post(`/attendance/events/${eventId}`, data);
-  return res.data;
+export async function markAttendance(participantId, eventId) {
+  const token = localStorage.getItem("access_token");
+  
+  return api.post(`/attendance`, {
+    event_id: eventId,
+    participant_id: participantId,
+    attended_at: new Date().toISOString(),
+    notes: null
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 }
+
 
 export async function bulkMarkAttendance(eventId, rows) {
   const res = await api.post(`/attendance/events/${eventId}/bulk`, rows);
   return res.data;
 }
 
-export async function fetchEventAttendance(eventId, params = {}) {
-  const res = await api.get(`/attendance/events/${eventId}`, { params });
+export async function fetchEventAttendance(eventId) {
+  const res = await api.get(`/attendance`, {
+    params: { event_id: eventId }
+  });
   return res.data;
 }
 
 export async function fetchMyAttendance(eventId) {
   const res = await api.get(`/attendance/events/${eventId}/me`);
+  return res.data;
+}
+
+
+// DELETE /attendance/{attendance_id}
+export async function deleteAttendance(attendanceId) {
+  const res = await api.delete(`/attendance/${attendanceId}`);
+  return res.data;
+}
+
+// GET /attendance/report?event_id=&start_date=&end_date=
+export async function attendanceReport(params) {
+  const res = await api.get(`/attendance/report`, {
+    params: {
+      event_id: params.event_id,
+      start_date: params.start_date,
+      end_date: params.end_date
+    }
+  });
   return res.data;
 }
 

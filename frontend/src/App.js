@@ -21,7 +21,10 @@ import AdminLayout from "./components/admin/AdminLayout";
 
 // Admin – Dashboard 
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import Attendance from "./pages/Admin/Attendance";
+
+// === NEW: Registration + Attendance pages ===
+import RegistrationManagement from "./pages/Admin/RegistrationManagement";
+import AttendanceManagement from "./pages/Admin/Attendance";
 
 // Admin – Accounts
 import VillagersAccount from "./pages/Admin/Account/AccountVillagers";
@@ -77,8 +80,7 @@ export default function App() {
       {!isAdminRoute && <Navbar user={user} setUser={setUser} />}
 
       <Routes>
-       {/* ========= PUBLIC ROUTES ========= */}
-        {/* These work for everyone (logged in or not) */}
+        {/* ========= PUBLIC ROUTES ========= */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage setUser={setUser} />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -87,9 +89,23 @@ export default function App() {
         <Route path="/pengumuman" element={<VillagerAnnouncement />} />
 
         {/* ========= VILLAGER ROUTES ========= */}
-        {/* These pages are only accessible when logged in as villager */}
-        <Route path="/profil" element={<VillagerProfile user={user} setUser={setUser} />} />
-        <Route path="/acara-saya" element={<MyEvents user={user} />} />
+        <Route
+          path="/profil"
+          element={
+            <ProtectedVillagerRoute user={user}>
+              <VillagerProfile user={user} setUser={setUser} />
+            </ProtectedVillagerRoute>
+          }
+        />
+
+        <Route
+          path="/acara-saya"
+          element={
+            <ProtectedVillagerRoute user={user}>
+              <MyEvents user={user} />
+            </ProtectedVillagerRoute>
+          }
+        />
 
         {/* ========= ADMIN ROUTES ========= */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -107,9 +123,13 @@ export default function App() {
           <Route path="peran/edit/:roleId" element={<RoleEdit />} />
           <Route path="peran/tugaskan/:roleId" element={<RoleAssign />} />
 
-          {/* Attendance */}
-          <Route path="kehadiran" element={<Attendance />} />
-          <Route path="kehadiran/edit/:id" element={<Attendance />} />
+          {/* === NEW: REGISTRATION MANAGEMENT === */}
+          <Route path="acara/registrasi" element={<RegistrationManagement />} />
+          <Route path="acara/registrasi/:eventId" element={<RegistrationManagement />} />
+
+          {/* === NEW: ATTENDANCE MANAGEMENT === */}
+          <Route path="acara/kehadiran" element={<AttendanceManagement />} />
+          <Route path="acara/kehadiran/:eventId" element={<AttendanceManagement />} />
 
           {/* Events */}
           <Route path="acara" element={<EventManagement />} />

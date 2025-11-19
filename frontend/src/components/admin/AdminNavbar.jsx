@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Menu } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import LogoutModal from "./LogoutModal";
@@ -7,17 +7,23 @@ export default function Navbar({ toggleSidebar, admin }) {
   const location = useLocation();
   const path = location.pathname;
 
-  const [ showLogoutModal, setShowLogoutModal ] = useState(false);
-  
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const getPageTitle = () => {
     if (path === "/admin" || path === "/admin/dashboard") return "Dashboard";
+
+    // NEW — Registration & Attendance pages
+    if (path.startsWith("/admin/acara/registrasi")) return "Registrasi Acara";
+    if (path.startsWith("/admin/acara/kehadiran")) return "Kehadiran Acara";
+
+    // Existing pages
     if (path.startsWith("/admin/acara/tambah")) return "Buat Acara";
-    if (path.startsWith("/admin/edit-acara")) return "Edit Acara";
-    if (path.startsWith("/admin/acara")) return "Acara";
-    if (path.startsWith("/admin/kehadiran")) return "Kehadiran";
+    if (path.startsWith("/admin/acara/edit")) return "Edit Acara";
+    if (path.startsWith("/admin/acara")) return "Kelola Acara";
     if (path.startsWith("/admin/peran")) return "Peran";
-    if (path.startsWith("/admin/kakun")) return "Kelola Akun";
+    if (path.startsWith("/admin/akun")) return "Kelola Akun";
     if (path.startsWith("/admin/pengumuman")) return "Pengumuman";
+
     return "Admin Panel";
   };
 

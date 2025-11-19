@@ -7,6 +7,8 @@ import {
   ClipboardList,
   Calendar,
   Megaphone,
+  UserPlus,
+  CheckSquare,
   X,
 } from "lucide-react";
 
@@ -29,11 +31,19 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       label: "Peran",
       icon: <Shield size={18} />,
     },
+
+    // NEW PAGES
     {
-      to: "/admin/kehadiran",
-      label: "Kehadiran",
-      icon: <ClipboardList size={18} />,
+      to: "/admin/acara/registrasi",
+      label: "Registrasi Acara",
+      icon: <UserPlus size={18} />,
     },
+    {
+      to: "/admin/acara/kehadiran",
+      label: "Kehadiran Acara",
+      icon: <CheckSquare size={18} />,
+    },
+
     {
       to: "/admin/acara",
       label: "Kelola Acara",
@@ -46,7 +56,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     },
   ];
 
-  // Fix for "active highlight" even on nested routes (/edit/123, /tambah, etc.)
   const isRouteActive = (path) => location.pathname.startsWith(path);
 
   return (
@@ -55,7 +64,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       } transition duration-300 ease-in-out z-40`}
     >
-      {/* Close button*/}
       <button
         onClick={toggleSidebar}
         className="p-2 text-gray-200 hover:text-white absolute top-4 right-4"
