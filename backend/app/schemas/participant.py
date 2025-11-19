@@ -13,7 +13,6 @@ class ParticipantOut(BaseModel):
     event_id: UUID
     user_id: UUID
     role_id: Optional[UUID]
-    attendance_status: str
     registered_at: datetime
 
     model_config = {"from_attributes": True}

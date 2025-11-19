@@ -32,3 +32,4 @@ class Event(Base):
     roles = relationship("Role", back_populates="event", cascade="all, delete")
     media = relationship("EventMedia", back_populates="event", lazy="selectin", cascade="all, delete")
     recurrence = relationship("Recurrence", back_populates="event", uselist=False, lazy="selectin", cascade="all, delete")
+    attendances = relationship("Attendance", back_populates="event", cascade="all, delete")

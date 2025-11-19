@@ -326,3 +326,35 @@ export async function fetchEventParticipantCount(eventId) {
     return 0;
   }
 }
+
+// Attendance
+export async function markAttendance(eventId, data) {
+  const res = await api.post(`/attendance/events/${eventId}`, data);
+  return res.data;
+}
+
+export async function bulkMarkAttendance(eventId, rows) {
+  const res = await api.post(`/attendance/events/${eventId}/bulk`, rows);
+  return res.data;
+}
+
+export async function fetchEventAttendance(eventId, params = {}) {
+  const res = await api.get(`/attendance/events/${eventId}`, { params });
+  return res.data;
+}
+
+export async function fetchMyAttendance(eventId) {
+  const res = await api.get(`/attendance/events/${eventId}/me`);
+  return res.data;
+}
+
+export async function monthlyAttendanceReport(opts) {
+  // opts: { event_id, year, month }
+  const res = await api.get(`/attendance/reports/monthly`, { params: opts });
+  return res.data;
+}
+
+export async function exportAttendanceCSV(params) {
+  // params: { event_id, start, end }
+  return api.get(`/attendance/reports/export`, { params, responseType: "blob" });
+}
