@@ -6,7 +6,7 @@ import { createEvent, api } from "../../../api";
 export default function EventCreation() {
   const navigate = useNavigate();
 
-  const [bannerFiles, setBannerFiles] = useState(null);
+  const [bannerFiles, setBannerFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Form states
