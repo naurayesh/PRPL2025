@@ -156,9 +156,6 @@ export default function ReportsAnalytics() {
 
       {/* Report Buttons */}
       <div className="space-y-3 mt-4">
-        <ReportButton label="Laporan Kehadiran Lengkap" />
-        <ReportButton label="Laporan Partisipasi Per Acara" />
-        <ReportButton label="Data Peserta Aktif" />
 
         <button
           onClick={handleExportExcel}
