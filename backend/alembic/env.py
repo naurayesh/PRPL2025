@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from alembic import context
 import asyncio
 import os
+import ssl
 from dotenv import load_dotenv
 
 # Load .env file for DATABASE_URL
@@ -43,14 +44,30 @@ def do_run_migrations(connection):
 
 
 async def run_migrations_online():
+    # Create SSL context for Railway/Supabase
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    
+    # Get config section and add SSL connect_args
+    configuration = config.get_section(config.config_ini_section)
+    configuration["sqlalchemy.url"] = DATABASE_URL
+    
     connectable = AsyncEngine(
         engine_from_config(
-            config.get_section(config.config_ini_section),
+            configuration,
             prefix="sqlalchemy.",
             poolclass=pool.NullPool,
             future=True,
+            connect_args={
+                "ssl": ssl_context,
+                "statement_cache_size": 0,
+                "prepared_statement_cache_size": 0,
+                "timeout": 30,
+            }
         )
     )
+    
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
     await connectable.dispose()
