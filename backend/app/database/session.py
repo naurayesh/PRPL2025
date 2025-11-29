@@ -1,8 +1,14 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
+import ssl
 
 DATABASE_URL = settings.DATABASE_URL
+
+# Create SSL context for Supabase
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -11,9 +17,9 @@ engine = create_async_engine(
     pool_recycle=1800,
     future=True,
     connect_args={
-        "ssl": ssl_context,
+        "ssl": ssl_context,  # Use SSL context instead of "require"
         "statement_cache_size": 0,
-        "prepared_statement_cache_size": 0  # for asyncpg >= 0.29
+        "prepared_statement_cache_size": 0
     }
 )
 
