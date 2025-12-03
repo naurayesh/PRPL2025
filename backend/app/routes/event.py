@@ -34,7 +34,20 @@ async def create_event(
         payload.slots_available,
         payload.recurrence_pattern
     )
-    return {"success": True, "data": EventOut.from_orm(ev).dict()}
+    
+    stmt = (
+        select(Event)
+        .options(
+            selectinload(Event.media),
+            selectinload(Event.participants)
+        )
+        .where(Event.id == ev.id)
+    )
+    
+    result = await session.execute(stmt)
+    ev_with_relations = result.scalar_one()
+    
+    return {"success": True, "data": EventOut.from_orm(ev_with_relations).dict()}
 
 
 
